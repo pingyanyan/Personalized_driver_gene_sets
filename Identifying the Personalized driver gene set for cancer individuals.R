@@ -71,6 +71,52 @@ FC_exp <- function(eflag, case, normal = NULL,log=F) {
 }
 ##############################################################################################################
 ##this part is random walk with restart
+##adjM get the max component of ppi network and its adjacent matrix
+adjM <- function(ppi, flag) {
+    ##ppi:data.frame with two colunms for protein pairs
+    ##flag="max" extract the max component of ppi network
+
+    g <- graph_from_data_frame(ppi, directed = F)
+    if (flag=="max") {
+        gene_list <- groups(components(g))
+        l <- which.max(unlist(lapply(gene_list, length)))
+        genes <- gene_list[[l]]
+        g<-induced_subgraph(g, genes)
+    }
+    M <- get.adjacency(g)
+    M <- as(M, "matrix")
+    return(list(g = g, M = M))
+}
+###adjM_W get the max component of ppi network and its weighted adjacent matrix
+adjM_W <- function(ppi,gene_M,flag) {
+
+    ##ppi:data.frame,包含蛋白质互作两列
+    ##flag用于标识是否提取网络最大连接组分
+      pos<-which(ppi[,1]==ppi[,2])
+      if(length(pos)){
+        ppi<-ppi[-pos,]
+      }
+      pos1<-which(ppi[,1]%in%rownames(gene_M))
+      pos2<-which(ppi[,2]%in%rownames(gene_M))
+      pos<-intersect(pos1,pos2)
+      ppi<-ppi[pos,]
+    g <- graph_from_data_frame(ppi, directed = F)
+    if (flag=="max") {
+        gene_list <- groups(components(g))
+        l <- which.max(unlist(lapply(gene_list, length)))
+        genes <- gene_list[[l]]
+        g<-induced_subgraph(g, genes)
+    }
+    M <- as_adjacency_matrix(g)
+    M <- as(M, "matrix")
+    M[M!=0]<-1
+    cor_M<-abs(cor(t(gene_M[rownames(M),])))
+    M<-M*cor_M
+   
+    return(list(g = g, M = M))
+}
+
+
 ##NAM tramsform the adjacent matrix of ppi network into matrix of transition probability through normalizing according to degrees of genes
 NAM <- function(M) {
     ##M is the adjacent matrix of ppi network
