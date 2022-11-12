@@ -89,9 +89,8 @@ adjM <- function(ppi, flag) {
 }
 ###adjM_W get the max component of ppi network and its weighted adjacent matrix
 adjM_W <- function(ppi,gene_M,flag) {
-
-    ##ppi:data.frame,包含蛋白质互作两列
-    ##flag用于标识是否提取网络最大连接组分
+    ##ppi:data.frame with two colunms for protein pairs
+    ##flag="max" extract the max component of ppi network
       pos<-which(ppi[,1]==ppi[,2])
       if(length(pos)){
         ppi<-ppi[-pos,]
