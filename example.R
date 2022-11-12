@@ -1,11 +1,18 @@
 setwd("identifying driver gene sets")
-load("ppi_exp.Rdata")
-source("1.data preprocess/program/adjM.R")
+library(igraph)
+library(GA)
+library(GSVA)
+library(doParallel)
+library(memoise)
+library(clusterProfiler)
+library(enrichplot)
+
+source("Identifying the Personalized driver gene set for cancer individuals.R")
 #M <- adjM(ppi_exp, "max")##
 #save(M, file = "1.data preprocess/data/processed/adjM.Rdata")
+load("ppi_exp.Rdata")
 M <- adjM_W(ppi_exp,gene_case,"max")
 save(M, file = "1.data preprocess/data/processed/adjM_W.Rdata")
-
 
 W <- NAM(M$M)
 save(W, file = "NAM.Rdata")
@@ -20,17 +27,6 @@ cnv_M<-as.matrix(cnv_M)
 load("mut_M.Rdata")##mut_M
 colnames(mut_M)<-substr(colnames(mut_M),9,12)
 load("case_normal_exp.Rdata")##gene_case和gene_normal
-
-library(igraph)
-library(GA)
-library(GSVA)
-library(doParallel)
-library(memoise)
-library(clusterProfiler)
-library(enrichplot)
-
-source("GA_genes and FC.R")
-
 load("hallmark_geneset.Rdata")##hallmark_geneset
 file <- "h.all.v7.1.entrez.gmt"
 gene_h<- read.gmt(file)
@@ -65,13 +61,13 @@ pthr=0.05
 Dname <- "GBM2"
 dflag<-"cm"
 
-driver_set(Dname,flag = dflag, eflag = eflag, cnv_M = cnv_M, mut_M = mut_M, meth_M = NULL, gene_M = gene_case, gene_normal = gene_normal, SM = SM, gene_h = gene_h, genesets_all = genesets, Cdrivergenes = Cdrivergenes, pthr = pthr, pcrossover = pcrossover, pmutation = pmutation, elitism = elitism)
+driver_set1(Dname,flag = dflag, eflag = eflag, cnv_M = cnv_M, mut_M = mut_M, meth_M = NULL, gene_M = gene_case, gene_normal = gene_normal, SM = SM, gene_h = gene_h, genesets_all = genesets, Cdrivergenes = Cdrivergenes, pthr = pthr, pcrossover = pcrossover, pmutation = pmutation, elitism = elitism)
 
 
 gaControl("binary" = list(selection = "gabin_tourSelection", crossover = "gabin_uCrossover"))
 
 
 
-result <- GA_F(genes, FC, genesets, W, r, u, popsize, pcrossover, pmutation, elitism, maxiter, parallel = F)
+result <- GA_F2(genes, FC, genesets, W, r, u, popsize, pcrossover, pmutation, elitism, maxiter, parallel = F)
 file<-paste(patiend_id,".Rdata",sep = "")
 save(result, file = file)
