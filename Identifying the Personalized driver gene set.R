@@ -1,8 +1,11 @@
+##GA_genes identifys the candidate driver genes for a cancer individual
 GA_genes <- function(flag, cnv = NULL, mut = NULL, meth = NULL) {
-    ##flag决定用什么类型数据获得候选驱动基因集：取值有c,m,me,cm,cme,mme,cmme
-    ##cnv是拷贝数0-1向量
-    ##mut是突变0-1向量
-    ##meth是甲基化0-1向量
+    ##flag: indicate what type of data type for identifying the driver genes for a cancer individual,c for copy number,m for mutation,
+    ########me for methylation,cm for copy number and mutation,cme for copy number and methylation,mme for mutation and methylation,
+    ########cmme for copy number,muation and methylation
+    ##cnv: is a 0-1 vector of copy number alteration for genes,1 represent copy number alteration and 0 not
+    ##mut: is a 0-1 vector of mutation for genes,1 represent copy number alteration and 0 not
+    ##meth:is a 0-1 vector of methylation for genes,1 represent hyper/hypo-methylation and 0 not
     if (flag == "c") {
         if (is.null(cnv))
             cat("Error:cnv is null")
@@ -41,10 +44,11 @@ GA_genes <- function(flag, cnv = NULL, mut = NULL, meth = NULL) {
 
     return(genes)
 }
-
+##FC_exp calculates the expression flod change of genes in cancer individuals
 FC_exp <- function(eflag, case, normal = NULL,log=F) {
 
-    ##eflag指示用癌症群体表达计算FC还是正常样本计算FC，取值T和C
+    ##eflag: indicate whether expression profiles of cancer samples or normal sample were used for calculating fold change of genes
+    #######T for cancer samples和C for normal samples
     if (eflag == "C") {
         if (log) { 
           case <-2^case / rowMeans(2^normal)
@@ -65,13 +69,30 @@ FC_exp <- function(eflag, case, normal = NULL,log=F) {
 
 
 }
-##随机游走函数
+##
+NAM <- function(M) {
+    ##M是网络的邻接矩阵
+    W <- sweep(M, 2, colSums(M), "/")##节点度标化
+    return(W)
+}
+
+###蛋白质互作网络在重启型随机游走稳态时的相似性矩阵（Similarity matrix）
+steady_SM <- function(transM, r) {
+    ##transM是转移概率矩阵，列和为1
+    ##r为随机游走重启概率
+    I <- diag(1, dim(transM)[1])
+    temp <- (I - (1 - r) * transM)
+    temp_inv <- solve(temp, I)
+    result <- r * temp_inv
+    rownames(result) <- rownames(transM)
+    colnames(result) <- colnames(transM)
+    return(result)
+}
+
+##RWR1 is the random walk with restart to calculate the stable trasfer probility of genes in the ppi network driven by the subset of genes
 RWR1 <- function(seeds,SM){
-    ##seeds是用于随机游走的种子，要求完全出现在网络中
-    ##r是重启概率
-    ##u是稳态判断条件
-    ##W是网络转移概率矩阵
-    #初始概率向量p0
+    ##seeds is the subset of candidate driver genes needed to be in ppi network
+    ##SM:
     p0 <- matrix(0, nrow = dim(SM)[1], ncol = 1)
     rownames(p0) <- rownames(SM)
     p0[seeds,] <- 1 / length(seeds) #p0的初始化
