@@ -69,17 +69,18 @@ FC_exp <- function(eflag, case, normal = NULL,log=F) {
 
 
 }
-##
+##############################################################################################################
+##NAM tramsform the adjacent matrix of ppi network into matrix of transition probability through normalizing according to degrees of genes
 NAM <- function(M) {
-    ##M是网络的邻接矩阵
-    W <- sweep(M, 2, colSums(M), "/")##节点度标化
+    ##M is the adjacent matrix of ppi network
+    W <- sweep(M, 2, colSums(M), "/")##normalize according to degrees of genes
     return(W)
 }
 
-###蛋白质互作网络在重启型随机游走稳态时的相似性矩阵（Similarity matrix）
+###steady_SM calculate the stable Similarity matrix of ppi network when random walk with restart stop
 steady_SM <- function(transM, r) {
-    ##transM是转移概率矩阵，列和为1
-    ##r为随机游走重启概率
+    ##transM:matrix of transition probability，the colnum sum is 1
+    ##r: the restart rate
     I <- diag(1, dim(transM)[1])
     temp <- (I - (1 - r) * transM)
     temp_inv <- solve(temp, I)
@@ -92,24 +93,21 @@ steady_SM <- function(transM, r) {
 ##RWR1 is the random walk with restart to calculate the stable trasfer probility of genes in the ppi network driven by the subset of genes
 RWR1 <- function(seeds,SM){
     ##seeds is the subset of candidate driver genes needed to be in ppi network
-    ##SM:
+    ##SM:the stable Similarity matrix of ppi network when random walk with restart stop
     p0 <- matrix(0, nrow = dim(SM)[1], ncol = 1)
     rownames(p0) <- rownames(SM)
-    p0[seeds,] <- 1 / length(seeds) #p0的初始化
+    p0[seeds,] <- 1 / length(seeds) #p0 initializaton
     p <- SM%*%p0
     return(p)
 }
-
-
+##########################################################################################################################
+##fff1 is the function for evaluating fitness index of subset of candidate genes 
 fff1 <- function(driver_gene, DFscore, Cgenes, genesets,SM) {
-    ##该函数用于计算驱动基因集的适应值评价指标
-    ##driver_gene表示一个个体中识别的驱动基因集合
-    ##FC是指一个个体转录组基因表达变化fold change向量
-    ##genesets表示癌症hallmark基因集
-    ##W是用于随机游走的蛋白质网络的转移矩阵
-    ##r表示随机游走重启概率
-    ##u表示随机游走稳态阈值
-
+    ##driver_gene: the subset of candidate genes to be evaluated in a cancer individual
+    ##DFscore: the Escores of dysfunctional cancer hallmarks identify by GSEA
+    ##cgenes:the common genes in ppi network and expression profiles
+    ##genesets: the gene sets of cancer hallmarks
+    ##SM:the stable Similarity matrix of ppi network when random walk with restart stop
     P <- RWR1(driver_gene,SM)
     P <- sort(P[Cgenes, ],decreasing = T)
     Hscore1 <- GSEA(P, TERM2GENE = genesets, verbose = FALSE, pvalueCutoff = 1)@result[names(DFscore),"NES"]
@@ -121,11 +119,12 @@ fff1 <- function(driver_gene, DFscore, Cgenes, genesets,SM) {
 
 }
 
+##GA_F2 is the program for genetic algorithm
 GA_F2 <- function(genes,DFscore, genesets, SM, popsize, pcrossover, pmutation, elitism, maxiter, parallel = NULL, Cgenes ) {
-##genes是癌症个体的遗传改变基因集合
-##DFscore是癌症个体hallmark激活得分
-##geneset：是hallmark基因集合，是一个两列的d
-##Cgenes是表达谱与互作网络共同基因
+##genes is all candidate genes in the cancer individual
+##DFscorethe Escores of dysfunctional cancer hallmarks identify by GSEA
+##geneset: the gene sets of cancer hallmarks
+##Cgenes:the common genes in ppi network and expression profiles
     genes <- intersect(genes, rownames(SM))
     if (length(genes) == 0) {
         cat("There are no genes in ppi network")
@@ -140,7 +139,30 @@ GA_F2 <- function(genes,DFscore, genesets, SM, popsize, pcrossover, pmutation, e
     result$GA<-GA
     return(result)
 }
+############################################################################################################################
+##driver_set1 is the main function to identify the personlized driver gene sets in cancer individual
 driver_set1 <- function(path,Dname, flag, eflag, cnv_M, mut_M, meth_M, gene_M, gene_normal, SM, genesets,Cdrivergenes, popsize, pcrossover, pmutation, elitism, maxiter, parallel = F,pthr) {
+   ##path:the output path
+   ##Dname:the disease name
+   ##flag: indicate what type of data type for identifying the driver genes for a cancer individual,c for copy number,m for mutation,
+   ########me for methylation,cm for copy number and mutation,cme for copy number and methylation,mme for mutation and methylation,
+   ########cmme for copy number,muation and methylation
+   ##eflag: indicate whether expression profiles of cancer samples or normal sample were used for calculating fold change of genes
+   #######T for cancer samples和C for normal samples
+   ##cnv_M: 0-1 matrix of copy number alteration of genes across cancer samples
+   ##mut_M: 0-1 matrix of mutation of genes across cancer samples
+   ##meth_M: 0-1 matrix of hyper/hypo-methylation of genes across cancer samples
+   ##gene_M: the expression profile of cancer samples
+   ##gene_normal:the expression profile of normal samples
+   ##SM:the stable Similarity matrix of ppi network when random walk with restart stop
+   ##Cdrivergenes
+   ##popsize
+   ##pcrossover
+   ##pmutation
+   ##elitism
+   ##maxiter
+   ##parallel = F
+   ##pthr
     path <- paste(path, Dname, "/", flag, sep = "")
     if (!dir.exists(path)) {
         dir.create(path, recursive = T)
