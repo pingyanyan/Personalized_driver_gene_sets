@@ -156,13 +156,13 @@ driver_set1 <- function(path,Dname, flag, eflag, cnv_M, mut_M, meth_M, gene_M, g
    ##gene_normal:the expression profile of normal samples
    ##SM:the stable Similarity matrix of ppi network when random walk with restart stop
    ##Cdrivergenes
-   ##popsize
-   ##pcrossover
-   ##pmutation
-   ##elitism
-   ##maxiter
-   ##parallel = F
-   ##pthr
+   ##popsize: population size in genetic algorithm
+   ##pcrossover:crossover operator in genetic algorithm
+   ##pmutation: mutation operator in genetic algorithm
+   ##elitism: the number of individuals with high fitness to be retain 
+   ##maxiter: the number of iterations in genetic algorithm
+   ##parallel: logical value, whether canculate in parallel
+   ##pthr: the significance threshold for identifying the dysfunctional cancer hallmark
     path <- paste(path, Dname, "/", flag, sep = "")
     if (!dir.exists(path)) {
         dir.create(path, recursive = T)
