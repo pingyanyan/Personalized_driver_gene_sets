@@ -70,6 +70,7 @@ FC_exp <- function(eflag, case, normal = NULL,log=F) {
 
 }
 ##############################################################################################################
+##this part is random walk with restart
 ##NAM tramsform the adjacent matrix of ppi network into matrix of transition probability through normalizing according to degrees of genes
 NAM <- function(M) {
     ##M is the adjacent matrix of ppi network
@@ -101,6 +102,7 @@ RWR1 <- function(seeds,SM){
     return(p)
 }
 ##########################################################################################################################
+##this part is genetic algorithm, which is embeded with random walk with restart
 ##fff1 is the function for evaluating fitness index of subset of candidate genes 
 fff1 <- function(driver_gene, DFscore, Cgenes, genesets,SM) {
     ##driver_gene: the subset of candidate genes to be evaluated in a cancer individual
