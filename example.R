@@ -1,25 +1,25 @@
-setwd("/pub6/temp/pyy/GA/identifying driver gene sets")
-load("1.data preprocess/data/processed/ppi_exp.Rdata")
+setwd("identifying driver gene sets")
+load("ppi_exp.Rdata")
 source("1.data preprocess/program/adjM.R")
-#M <- adjM(ppi_exp, "max")##包含两部分网络图g和邻接矩阵M
+#M <- adjM(ppi_exp, "max")##
 #save(M, file = "1.data preprocess/data/processed/adjM.Rdata")
-M <- adjM_W(ppi_exp,gene_case,"max")##利用基因表达构建共表达网络，包含两部分网络图g和邻接矩阵M
+M <- adjM_W(ppi_exp,gene_case,"max")
 save(M, file = "1.data preprocess/data/processed/adjM_W.Rdata")
 
 
-W <- NAM(M$M)##对邻接矩阵进行度标化
-save(W, file = "1.data preprocess/data/processed/NAM.Rdata")
+W <- NAM(M$M)
+save(W, file = "NAM.Rdata")
 
-setwd("/pub6/temp/pyy/GA/identifying driver gene sets")
-load("/pub5/xiaoyun/BigData/TCGA/GBM/result/cnv_M.Rdata")##cnv_M
+
+load("cnv_M.Rdata")##cnv_M
 colnames(cnv_M)<-substr(colnames(cnv_M),9,12)
 pos<-which(apply(cnv_M,2,sum)==0)
 cnv_M <- cnv_M[, - pos]
 cnv_M<-as.matrix(cnv_M)
 
-load("/pub5/xiaoyun/BigData/TCGA/GBM/result/mut_M.Rdata")##mut_M
+load("mut_M.Rdata")##mut_M
 colnames(mut_M)<-substr(colnames(mut_M),9,12)
-load("/pub5/xiaoyun/BigData/TCGA/GBM/result/case_normal_exp.Rdata")##gene_case和gene_normal
+load("case_normal_exp.Rdata")##gene_case和gene_normal
 
 library(igraph)
 library(GA)
@@ -28,21 +28,15 @@ library(doParallel)
 library(memoise)
 library(clusterProfiler)
 library(enrichplot)
-setwd("/pub6/temp/pyy/GA/identifying driver gene sets/")
-source("1.data preprocess/program/GA_genes and FC.R")
 
-load("1.data preprocess/data/processed/hallmark_geneset.Rdata")##hallmark_geneset
-file <- "1.data preprocess/data/original/h.all.v7.1.entrez.gmt"
+source("GA_genes and FC.R")
+
+load("hallmark_geneset.Rdata")##hallmark_geneset
+file <- "h.all.v7.1.entrez.gmt"
 gene_h<- read.gmt(file)
-load("1.data preprocess/data/processed/NAM.Rdata") ##W
-#load("1.data preprocess/data/processed/SM_0.3.Rdata")
-load("1.data preprocess/data/processed/SM_W0.3.Rdata")
-load("2.driver genesets/data/Cdrivergenes_by_SMW0.3.Rdata") ##Cdrivergenes
-
-source("2.driver genesets/program/RWR.R")
-source("2.driver genesets/program/f.R")
-source("2.driver genesets/program/main.R")
-source("2.driver genesets/program/GA_genes and FC.R")
+load("NAM.Rdata") ##W
+load("SM_W0.3.Rdata")
+load("Cdrivergenes_by_SMW0.3.Rdata") ##Cdrivergenes
 
 #patient_id <-  "0882"
 
